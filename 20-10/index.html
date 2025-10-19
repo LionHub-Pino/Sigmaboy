@@ -467,7 +467,7 @@
                 </div>
                 <div class="wrapperLetter">
                     <div class="textLetter">
-                        <img src="me_cua_ban.jpeg" alt="Ảnh của mẹ" class="mom-image">
+                        <img src="att.nju-A7ZeW_RCWv2wLxEVIUwU7YCnHBHrVMT54MK-dOs.jpeg" alt="20-10" class="mom-image">
                         <h2></h2>
                         <p class="contentLetter"></p>
                     </div>
@@ -498,23 +498,27 @@
             begin: function (anim) {
                 // Khi bắt đầu: Đặt nét vẽ là màu đen, không tô màu
                 allPaths.forEach(function(p) {
-                    p.setAttribute("stroke", "black");
-                    p.setAttribute("fill", "none");
+                    if (p) { // Kiểm tra xem phần tử có tồn tại không
+                         p.setAttribute("stroke", "black");
+                         p.setAttribute("fill", "none");
+                    }
                 });
             },
             complete: function (anim) {
                 // Khi hoàn thành: Tô màu và bỏ nét vẽ
-                leafOne.setAttribute("fill", "#9CDD05");
-                leafTwo.setAttribute("fill", "#9CDD05");
-                stickLine.setAttribute("fill", "#83AA2E");
-                leafS1.setAttribute("fill", "#9CDD05");
-                rose1.setAttribute("fill", "#F37D79");
-                rose2.setAttribute("fill", "#D86666");
-                rose3.setAttribute("fill", "#F37D79");
-                rose4.setAttribute("fill", "#D86666");
+                if (leafOne) leafOne.setAttribute("fill", "#9CDD05");
+                if (leafTwo) leafTwo.setAttribute("fill", "#9CDD05");
+                if (stickLine) stickLine.setAttribute("fill", "#83AA2E");
+                if (leafS1) leafS1.setAttribute("fill", "#9CDD05");
+                if (rose1) rose1.setAttribute("fill", "#F37D79");
+                if (rose2) rose2.setAttribute("fill", "#D86666");
+                if (rose3) rose3.setAttribute("fill", "#F37D79");
+                if (rose4) rose4.setAttribute("fill", "#D86666");
                 
                 allPaths.forEach(function(p) {
-                    p.setAttribute("stroke", "none");
+                    if (p) { // Kiểm tra xem phần tử có tồn tại không
+                        p.setAttribute("stroke", "none");
+                    }
                 });
             },
             autoplay: true,
@@ -524,21 +528,37 @@
     <script>
         // Script cho hiệu ứng SVG trái tim
         (function() {
-            // Kiểm tra xem 'shape' có tồn tại không trước khi dùng
-            if (typeof shape === 'undefined') return;
+            const shapeElement = document.getElementById('shape');
+            const partialPathElement = document.getElementById('partialPath');
+
+            // Kiểm tra xem các element cần thiết có tồn tại không
+            if (!shapeElement || !partialPathElement) {
+                console.error("SVG elements 'shape' or 'partialPath' not found.");
+                return; 
+            }
 
             let rid = null;
             const SVG_NS = "http://www.w3.org/2000/svg";
-            const pathlength = shape.getTotalLength();
+            const pathlength = shapeElement.getTotalLength(); // Sử dụng shapeElement
             let t = 0;
             let lengthAtT = pathlength * t;
-            let d = shape.getAttribute("d");
-            let n = d.match(/C/gi).length;
+            let d = shapeElement.getAttribute("d"); // Sử dụng shapeElement
+            
+            // Kiểm tra xem 'd' có phải là string không
+            if (typeof d !== 'string') {
+                 console.error("Attribute 'd' on 'shape' element is not a string.");
+                 return;
+            }
+            
+            const matchC = d.match(/C/gi); // Kiểm tra kết quả match
+            let n = matchC ? matchC.length : 0; // Số lượng lệnh 'C'
+            
             let pos = 0;
             let subpaths = [];
 
             class subPath {
-                constructor(d) {
+                 // ... (Giữ nguyên định nghĩa class subPath)
+                 constructor(d) {
                     this.d = d;
                     this.get_PointsRy();
                     this.previous = subpaths.length > 0 ? subpaths[subpaths.length - 1] : null;
@@ -548,8 +568,15 @@
                 }
                 get_PointsRy() {
                     this.pointsRy = [];
+                    // Kiểm tra d có phải string không trước khi split
+                    if (typeof this.d !== 'string') return;
                     let temp = this.d.split(/[A-Z,a-z\s,]/).filter(v => v);
-                    temp.forEach(item => this.pointsRy.push(parseFloat(item)));
+                    temp.forEach(item => {
+                         const parsed = parseFloat(item);
+                         if (!isNaN(parsed)) { // Chỉ push số hợp lệ
+                              this.pointsRy.push(parsed);
+                         }
+                    });
                 }
                 measurePath() {
                     let path = document.createElementNS(SVG_NS, "path");
@@ -557,56 +584,92 @@
                     this.pathLength = path.getTotalLength();
                 }
                 get_M_Point() {
-                    if (this.previous) {
+                    if (this.previous && this.previous.pointsRy) {
                         let p = this.previous.pointsRy;
                         let l = p.length;
-                        this.M_point = [p[l - 2], p[l - 1]];
-                    } else {
+                        if(l >= 2) this.M_point = [p[l - 2], p[l - 1]];
+                    } else if (this.pointsRy) {
                         let p = this.pointsRy;
-                        this.M_point = [p[0], p[1]];
+                         if(p.length >= 2) this.M_point = [p[0], p[1]];
                     }
                 }
                 get_lastCubicBezier() {
+                     // Kiểm tra d và M_point
+                     if (typeof this.d !== 'string' || !this.M_point) return;
                     let lastIndexOfC = this.d.lastIndexOf("C");
+                    if (lastIndexOfC === -1) return; // Không tìm thấy 'C'
+
                     let temp = this.d.substring(lastIndexOfC + 1).split(/[\s,]/).filter(v => v);
                     let _temp = [];
-                    temp.forEach(item => _temp.push(parseFloat(item)));
+                    temp.forEach(item => {
+                         const parsed = parseFloat(item);
+                         if (!isNaN(parsed)) _temp.push(parsed);
+                    });
+
                     this.lastCubicBezier = [this.M_point];
                     for (let i = 0; i < _temp.length; i += 2) {
-                        this.lastCubicBezier.push(_temp.slice(i, i + 2));
+                        // Đảm bảo có đủ 2 phần tử
+                        if(i + 1 < _temp.length) {
+                             this.lastCubicBezier.push(_temp.slice(i, i + 2));
+                        }
                     }
                 }
             }
 
+
             for (let i = 0; i < n; i++) {
+                // Thêm kiểm tra newpos hợp lệ
                 let newpos = d.indexOf("C", pos + 1);
+                if (newpos === -1 && i < n -1) { // Nếu không tìm thấy C tiếp theo và chưa phải lần cuối
+                     console.warn("Could not find next 'C' command in path data.");
+                     break; // Thoát vòng lặp nếu path data không đúng định dạng
+                }
+                 if (newpos === -1) newpos = d.length; // Nếu là C cuối cùng
+
                 if (i > 0) {
-                    let sPath = new subPath(d.substring(0, newpos));
-                    subpaths.push(sPath);
+                    let pathData = d.substring(0, newpos);
+                    // Thêm kiểm tra pathData không rỗng
+                    if(pathData) subpaths.push(new subPath(pathData));
                 }
                 pos = newpos;
             }
-            subpaths.push(new subPath(d));
+             // Thêm kiểm tra d không rỗng
+             if(d) subpaths.push(new subPath(d)); // Path cuối cùng
 
-            let index;
-            for (index = 0; index < subpaths.length; index++) {
-                if (subpaths[index].pathLength >= lengthAtT) break;
-            }
+            let index = 0; // Khởi tạo index
 
-            function get_T(t, index) {
+            function get_T(t, currentIndex) { // Đổi tên tham số để tránh nhầm lẫn
                 lengthAtT = pathlength * t;
-                if (index > 0) {
-                    return (lengthAtT - subpaths[index].previous.pathLength) / (subpaths[index].pathLength - subpaths[index].previous.pathLength);
-                } else {
-                    return lengthAtT / subpaths[index].pathLength;
+                // Thêm kiểm tra subpaths[currentIndex] và previous tồn tại
+                if (currentIndex > 0 && subpaths[currentIndex] && subpaths[currentIndex].previous) {
+                     const currentLength = subpaths[currentIndex].pathLength;
+                     const prevLength = subpaths[currentIndex].previous.pathLength;
+                     // Tránh chia cho 0
+                     if (currentLength > prevLength) {
+                         return (lengthAtT - prevLength) / (currentLength - prevLength);
+                     } else {
+                          return 0; // Hoặc một giá trị mặc định khác
+                     }
+                } else if (subpaths[currentIndex] && subpaths[currentIndex].pathLength > 0) { // Tránh chia cho 0
+                    return lengthAtT / subpaths[currentIndex].pathLength;
                 }
+                 return 0; // Giá trị mặc định nếu không tính được
             }
 
             function lerp(A, B, t) {
+                 // Thêm kiểm tra A, B là mảng và có ít nhất 2 phần tử
+                 if (!Array.isArray(A) || A.length < 2 || !Array.isArray(B) || B.length < 2) {
+                     return [0, 0]; // Trả về giá trị mặc định
+                 }
                 return [(B[0] - A[0]) * t + A[0], (B[1] - A[1]) * t + A[1]];
             }
 
             function getBezierPoints(t, points) {
+                 // Kiểm tra points là mảng và có đủ 4 điểm
+                 if (!Array.isArray(points) || points.length !== 4) {
+                      console.error("Invalid points data for getBezierPoints");
+                      return [[0,0], [0,0], [0,0], [0,0]]; // Trả về mảng điểm mặc định
+                 }
                 let helperPoints = [];
                 for (let i = 1; i < 4; i++) {
                     helperPoints.push(lerp(points[i - 1], points[i], t));
@@ -617,12 +680,30 @@
                 return [points[0], helperPoints[0], helperPoints[3], helperPoints[5]];
             }
 
-            function drawCBezier(points, path, index) {
-                let d = (index > 0) ? subpaths[index].previous.d : `M${points[0][0]},${points[0][1]} C`;
-                for (let i = 1; i < 4; i++) {
-                    d += ` ${points[i][0]},${points[i][1]} `;
+            function drawCBezier(points, path, currentIndex) { // Đổi tên tham số
+                 // Thêm kiểm tra points hợp lệ
+                 if (!Array.isArray(points) || points.length !== 4) return;
+
+                let dString = ""; // Đổi tên biến để tránh nhầm lẫn
+                // Kiểm tra currentIndex và subpaths
+                if (currentIndex > 0 && subpaths[currentIndex] && subpaths[currentIndex].previous) {
+                     dString = subpaths[currentIndex].previous.d;
+                } else if (points[0] && Array.isArray(points[0]) && points[0].length >=2) { // Kiểm tra điểm bắt đầu
+                    dString = `M${points[0][0]},${points[0][1]} C`;
+                } else {
+                     return; // Không có điểm bắt đầu hợp lệ
                 }
-                partialPath.setAttributeNS(null, "d", d);
+
+                for (let i = 1; i < 4; i++) {
+                     // Kiểm tra points[i] hợp lệ
+                     if(points[i] && Array.isArray(points[i]) && points[i].length >= 2) {
+                          dString += ` ${points[i][0]},${points[i][1]} `;
+                     } else {
+                          console.warn(`Invalid point data at index ${i} for drawCBezier`);
+                          return; // Dừng nếu có điểm không hợp lệ
+                     }
+                }
+                path.setAttributeNS(null, "d", dString);
             }
 
             function Typing() {
@@ -630,31 +711,60 @@
                 if (t >= 1) {
                     t = 1;
                     window.cancelAnimationFrame(rid);
+                    rid = null; // Đặt lại rid sau khi cancel
                 }
 
                 lengthAtT = pathlength * t;
+                // Cập nhật lại index trong mỗi frame
                 for (index = 0; index < subpaths.length; index++) {
-                    if (subpaths[index].pathLength >= lengthAtT) break;
+                     // Kiểm tra subpaths[index] tồn tại
+                     if (subpaths[index] && subpaths[index].pathLength >= lengthAtT) break;
                 }
-                let T = get_T(t, index);
-                let newPoints = getBezierPoints(T, subpaths[index].lastCubicBezier);
-                drawCBezier(newPoints, partialPath, index);
+                 // Đảm bảo index không vượt quá giới hạn mảng
+                 if (index >= subpaths.length) index = subpaths.length - 1; 
+
+                 // Kiểm tra subpaths[index] và lastCubicBezier tồn tại
+                 if (subpaths[index] && subpaths[index].lastCubicBezier) {
+                     let T = get_T(t, index);
+                     let newPoints = getBezierPoints(T, subpaths[index].lastCubicBezier);
+                     drawCBezier(newPoints, partialPathElement, index); // Sử dụng partialPathElement
+                 } else {
+                      console.warn(`Subpath or lastCubicBezier not found for index ${index}`);
+                      window.cancelAnimationFrame(rid); // Dừng animation nếu có lỗi
+                      rid = null;
+                 }
                 
-                if(t < 1) {
+                if(t < 1 && rid) { // Chỉ request frame tiếp theo nếu chưa hoàn thành và rid chưa bị cancel
                     rid = window.requestAnimationFrame(Typing);
                 }
             }
 
-            setTimeout(() => {
-                document.querySelector("#text-click").style.display = "inherit";
-            }, 4000);
 
-            document.querySelector("#rose-t").onclick = function () {
-                document.querySelector("#rose-t").style.display = "none";
-                document.querySelector("#castle").style.display = "flex";
-                document.querySelector("#theSvg").style.display = "inherit";
-                t = 0; // Reset t
-                rid = window.requestAnimationFrame(Typing);
+            const textClickElement = document.querySelector("#text-click");
+            const roseTElement = document.querySelector("#rose-t");
+            const castleElement = document.querySelector("#castle");
+            const theSvgElement = document.querySelector("#theSvg");
+
+            // Thêm kiểm tra các element tồn tại
+            if (textClickElement) {
+                setTimeout(() => {
+                    textClickElement.style.display = "inherit";
+                }, 4000);
+            }
+
+            if (roseTElement && castleElement && theSvgElement) {
+                roseTElement.onclick = function () {
+                    roseTElement.style.display = "none";
+                    castleElement.style.display = "flex";
+                    theSvgElement.style.display = "inherit";
+                    t = 0; // Reset t khi bắt đầu animation mới
+                    // Chỉ bắt đầu animation nếu rid chưa được set (tránh chạy nhiều lần)
+                    if (!rid) { 
+                         rid = window.requestAnimationFrame(Typing);
+                    }
+                }
+            } else {
+                 console.error("One or more elements (#rose-t, #castle, #theSvg) not found.");
             }
         })();
 
@@ -664,6 +774,12 @@
             const textLetterP = "Nhân ngày 20/10, con chúc mẹ luôn mạnh khỏe, vui vẻ và hạnh phúc bên gia đình mình. Cảm ơn mẹ đã luôn là chỗ dựa vững chắc cho con. Con yêu mẹ rất nhiều!";
             let textLetter = document.querySelector('.textLetter h2');
             let textLetterContent = document.querySelector('.contentLetter');
+             // Thêm kiểm tra textLetter và textLetterContent tồn tại
+             if(!textLetter || !textLetterContent) {
+                  console.error("Elements for letter text (.textLetter h2 or .contentLetter) not found.");
+                  return; // Không chạy tiếp nếu thiếu element
+             }
+
             let indexText = 0;
             let indexTextContent = 0;
             let timoutTextLetter, timoutTextLetterContent;
@@ -720,8 +836,11 @@
                 // Dừng chạy chữ
                 clearInterval(timoutTextLetter);
                 clearInterval(timoutTextLetterContent);
+                 // Xóa text khi đóng để lần sau mở lại chạy từ đầu
                 textLetter.textContent = '';
                 textLetterContent.textContent = '';
+                indexText = 0; // Reset index
+                indexTextContent = 0; // Reset index
             });
         });
     </script>
