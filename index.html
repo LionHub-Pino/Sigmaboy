@@ -1,170 +1,29 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình tạo 2FA (Offline)</title>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        .warning {
-            background-color: #fffbe6;
-            border: 1px solid #ffe58f;
-            color: #ad8a00;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        #secret-key {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .code-display {
-            margin: 30px 0;
-        }
-
-        #otp-code {
-            font-size: 48px;
-            font-weight: bold;
-            color: #007bff;
-            letter-spacing: 5px;
-        }
-
-        .timer-bar {
-            width: 100%;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-            height: 10px;
-            margin-top: 20px;
-        }
-
-        #timer-progress {
-            height: 100%;
-            width: 100%;
-            background-color: #007bff;
-            transition: width 0.1s linear;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📧 10 Phút Mail</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="container">
+    <h1>📨 Email Tạm Thời (10 phút)</h1>
     
-    <div class="container">
-        <h1>Trình tạo mã 2FA (Offline)</h1>
-        <p class="warning">
-            ⚠️ CẢNH BÁO: Chỉ sử dụng trang này khi OFFLINE. Không bao giờ dán Khóa bí mật của bạn vào bất kỳ trang web nào trên mạng.
-        </p>
-
-        <label for="secret-key">Nhập Khóa bí mật (Base32):</label>
-        <input type="text" id="secret-key" placeholder="Dán khóa bí mật của bạn vào đây...">
-
-        <div class="code-display">
-            <span id="otp-code">000000</span>
-        </div>
-
-        <div class="timer-bar">
-            <div id="timer-progress"></div>
-        </div>
-        <p>Mã sẽ làm mới sau <span id="timer-seconds">30</span> giây.</p>
+    <div class="email-box">
+      <p id="email-address">Đang tạo...</p>
+      <p id="timer">⏳ Còn lại: --:--</p>
+      <button id="new-email">🔁 Tạo lại email</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/otpauth-js@9.2.2/dist/otpauth.umd.min.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const secretInput = document.getElementById('secret-key');
-            const codeDisplay = document.getElementById('otp-code');
-            const timerProgress = document.getElementById('timer-progress');
-            const timerSeconds = document.getElementById('timer-seconds');
-            
-            let currentTotp = null;
+    <h2>📥 Hộp thư đến</h2>
+    <div id="emails"></div>
+  </div>
 
-            function updateCode() {
-                const secret = secretInput.value.trim().replace(/\s/g, ''); // Xóa khoảng trắng
-                if (!secret) {
-                    codeDisplay.textContent = "000000";
-                    return;
-                }
+  <footer>
+    <p>Made by <b>10MinuteMail Web</b> 💌 | Powered by <a href="https://10minutemail.net/">10MinuteMail.net</a></p>
+  </footer>
 
-                try {
-                    // Khởi tạo đối tượng TOTP
-                    currentTotp = new OTPAuth.TOTP({
-                        algorithm: "SHA1",
-                        digits: 6,
-                        period: 30,
-                        // Chuyển khóa bí mật từ Base32
-                        secret: OTPAuth.Secret.fromBase32(secret)
-                    });
-
-                    // Tạo mã
-                    const token = currentTotp.generate();
-                    codeDisplay.textContent = token;
-
-                } catch (error) {
-                    console.error("Lỗi:", error);
-                    codeDisplay.textContent = "LỖI KHÓA";
-                }
-            }
-
-            function updateTimer() {
-                // Lấy số giây còn lại trong chu kỳ 30s
-                const now = Math.floor(Date.now() / 1000);
-                const secondsRemaining = 30 - (now % 30);
-                
-                timerSeconds.textContent = secondsRemaining;
-
-                // Cập nhật thanh tiến trình
-                const progressPercentage = (secondsRemaining / 30) * 100;
-                timerProgress.style.width = progressPercentage + '%';
-
-                // Nếu chu kỳ vừa kết thúc (giây 30), tạo mã mới
-                if (secondsRemaining === 30) {
-                    updateCode();
-                }
-            }
-
-            // Cập nhật mã mỗi khi người dùng nhập
-            secretInput.addEventListener('input', updateCode);
-            
-            // Cập nhật đồng hồ mỗi giây
-            setInterval(updateTimer, 1000);
-
-            // Chạy lần đầu khi tải trang
-            updateCode();
-            updateTimer();
-        });
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>
