@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalizationService = game:GetService("LocalizationService")
-local LogService = game:GetService("LogService")
 
 local function rich(text, color)
     return string.format('<font color="rgb(%d,%d,%d)">%s</font>', 
@@ -38,9 +37,10 @@ local function CreateTrackUi()
     bgImg.ZIndex = 1
 
     local infoContainer = Instance.new("Frame", gui)
+    infoContainer.Name = "CenterContainer"
     infoContainer.AnchorPoint = Vector2.new(0.5, 0.5)
     infoContainer.Position = UDim2.fromScale(0.5, 0.5)
-    infoContainer.Size = UDim2.fromOffset(400, 250)
+    infoContainer.Size = UDim2.fromOffset(500, 300)
     infoContainer.BackgroundTransparency = 1 
     infoContainer.BorderSizePixel = 0
     infoContainer.ZIndex = 2
@@ -48,84 +48,36 @@ local function CreateTrackUi()
     local list = Instance.new("UIListLayout", infoContainer)
     list.HorizontalAlignment = Enum.HorizontalAlignment.Center
     list.VerticalAlignment = Enum.VerticalAlignment.Center
-    list.Padding = UDim.new(0, 8)
+    list.Padding = UDim.new(0, 10) -- Khoảng cách giữa các dòng để tránh đè nhau
 
     local function createLabel(name, size, color, parent)
         local l = Instance.new("TextLabel", parent)
         l.Name = name
-        l.Size = UDim2.new(1, 0, 0, 32)
+        l.Size = UDim2.new(1, 0, 0, 35) -- Chiều cao cố định cho mỗi label
         l.BackgroundTransparency = 1
         l.RichText = true
         l.Font = Enum.Font.GothamBlack
         l.TextSize = size
         l.TextColor3 = color or Color3.new(1,1,1)
-        l.TextStrokeTransparency = 0.3 
+        l.TextStrokeTransparency = 0.2 
         l.TextStrokeColor3 = Color3.new(0,0,0)
+        l.TextWrapped = false
         l.ZIndex = parent.ZIndex + 1
         return l
     end
 
-    local title = createLabel("Title", 28, Color3.fromRGB(0, 255, 150), infoContainer)
-    local infoTimeServer = createLabel("TimeServer", 18, nil, infoContainer)
-    local infoRegion = createLabel("Region", 18, nil, infoContainer)
-    local infoUptime = createLabel("Uptime", 18, nil, infoContainer)
-    local infoFPS = createLabel("FPS", 18, Color3.new(0, 1, 1), infoContainer)
+    local title = createLabel("Title", 30, Color3.fromRGB(0, 255, 150), infoContainer)
+    local infoTimeServer = createLabel("TimeServer", 20, nil, infoContainer)
+    local infoRegion = createLabel("Region", 20, nil, infoContainer)
+    local infoUptime = createLabel("Uptime", 20, nil, infoContainer)
+    local infoFPS = createLabel("FPS", 20, Color3.new(0, 1, 1), infoContainer)
 
-    title.Text = "TRACK UI SYSTEM"
+    title.Text = "Привет, пользователь банана!"
     
     local regionCode = "Unknown"
     pcall(function()
         regionCode = LocalizationService:GetCountryRegionForPlayerAsync(LP)
     end)
-
-    local consoleFrame = Instance.new("ScrollingFrame", gui)
-    consoleFrame.Name = "ConsoleLog"
-    consoleFrame.AnchorPoint = Vector2.new(0.5, 1)
-    consoleFrame.Position = UDim2.fromScale(0.5, 0.98)
-    consoleFrame.Size = UDim2.fromOffset(350, 120)
-    consoleFrame.BackgroundTransparency = 0.6 
-    consoleFrame.BackgroundColor3 = Color3.new(0,0,0)
-    consoleFrame.BorderSizePixel = 0
-    consoleFrame.ZIndex = 3
-    consoleFrame.ScrollBarThickness = 2
-    consoleFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    consoleFrame.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
-
-    local consoleList = Instance.new("UIListLayout", consoleFrame)
-    consoleList.SortOrder = Enum.SortOrder.LayoutOrder
-    consoleList.Padding = UDim.new(0, 2)
-
-    local function addLog(message, messageType)
-        local color = Color3.new(1,1,1)
-        if messageType == Enum.MessageType.MessageWarning then color = Color3.new(1, 1, 0)
-        elseif messageType == Enum.MessageType.MessageError then color = Color3.new(1, 0, 0) end
-
-        local logLbl = Instance.new("TextLabel", consoleFrame)
-        logLbl.Size = UDim2.new(1, -5, 0, 0)
-        logLbl.AutomaticSize = Enum.AutomaticSize.Y
-        logLbl.BackgroundTransparency = 1
-        logLbl.Text = string.format("[%s] %s", os.date("%X"), message)
-        logLbl.Font = Enum.Font.Code
-        logLbl.TextSize = 11
-        logLbl.TextColor3 = color
-        logLbl.TextXAlignment = Enum.TextXAlignment.Left
-        logLbl.TextWrapped = true
-        logLbl.TextStrokeTransparency = 0.5
-        
-        local logs = consoleFrame:GetChildren()
-        local count = 0
-        for _, v in pairs(logs) do if v:IsA("TextLabel") then count = count + 1 end end
-        if count > 30 then
-            for _, v in pairs(logs) do
-                if v:IsA("TextLabel") then v:Destroy() break end
-            end
-        end
-        
-        task.wait()
-        consoleFrame.CanvasPosition = Vector2.new(0, consoleFrame.AbsoluteCanvasSize.Y)
-    end
-
-    LogService.MessageOut:Connect(addLog)
 
     local startTime = os.clock()
     local fps = 0
