@@ -38,9 +38,9 @@ local function CreateTrackUi()
     bgImg.ZIndex = 1
 
     local infoContainer = Instance.new("Frame", gui)
-    infoContainer.AnchorPoint = Vector2.new(0.5, 0)
-    infoContainer.Position = UDim2.fromScale(0.5, 0.05)
-    infoContainer.Size = UDim2.fromOffset(400, 180)
+    infoContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    infoContainer.Position = UDim2.fromScale(0.5, 0.5)
+    infoContainer.Size = UDim2.fromOffset(400, 250)
     infoContainer.BackgroundTransparency = 1 
     infoContainer.BorderSizePixel = 0
     infoContainer.ZIndex = 2
@@ -48,12 +48,12 @@ local function CreateTrackUi()
     local list = Instance.new("UIListLayout", infoContainer)
     list.HorizontalAlignment = Enum.HorizontalAlignment.Center
     list.VerticalAlignment = Enum.VerticalAlignment.Center
-    list.Padding = UDim.new(0, 6)
+    list.Padding = UDim.new(0, 8)
 
     local function createLabel(name, size, color, parent)
         local l = Instance.new("TextLabel", parent)
         l.Name = name
-        l.Size = UDim2.new(1, 0, 0, 30)
+        l.Size = UDim2.new(1, 0, 0, 32)
         l.BackgroundTransparency = 1
         l.RichText = true
         l.Font = Enum.Font.GothamBlack
@@ -65,11 +65,11 @@ local function CreateTrackUi()
         return l
     end
 
-    local title = createLabel("Title", 24, Color3.fromRGB(0, 255, 150), infoContainer)
-    local infoTimeServer = createLabel("TimeServer", 16, nil, infoContainer)
-    local infoRegion = createLabel("Region", 16, nil, infoContainer)
-    local infoUptime = createLabel("Uptime", 16, nil, infoContainer)
-    local infoFPS = createLabel("FPS", 16, Color3.new(0, 1, 1), infoContainer)
+    local title = createLabel("Title", 28, Color3.fromRGB(0, 255, 150), infoContainer)
+    local infoTimeServer = createLabel("TimeServer", 18, nil, infoContainer)
+    local infoRegion = createLabel("Region", 18, nil, infoContainer)
+    local infoUptime = createLabel("Uptime", 18, nil, infoContainer)
+    local infoFPS = createLabel("FPS", 18, Color3.new(0, 1, 1), infoContainer)
 
     title.Text = "TRACK UI SYSTEM"
     
@@ -80,18 +80,19 @@ local function CreateTrackUi()
 
     local consoleFrame = Instance.new("ScrollingFrame", gui)
     consoleFrame.Name = "ConsoleLog"
-    consoleFrame.AnchorPoint = Vector2.new(1, 1)
-    consoleFrame.Position = UDim2.fromScale(0.98, 0.98)
-    consoleFrame.Size = UDim2.fromOffset(280, 120)
-    consoleFrame.BackgroundTransparency = 0.5 
+    consoleFrame.AnchorPoint = Vector2.new(0.5, 1)
+    consoleFrame.Position = UDim2.fromScale(0.5, 0.98)
+    consoleFrame.Size = UDim2.fromOffset(350, 120)
+    consoleFrame.BackgroundTransparency = 0.6 
     consoleFrame.BackgroundColor3 = Color3.new(0,0,0)
     consoleFrame.BorderSizePixel = 0
     consoleFrame.ZIndex = 3
-    consoleFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     consoleFrame.ScrollBarThickness = 2
+    consoleFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    consoleFrame.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
 
     local consoleList = Instance.new("UIListLayout", consoleFrame)
-    consoleList.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    consoleList.SortOrder = Enum.SortOrder.LayoutOrder
     consoleList.Padding = UDim.new(0, 2)
 
     local function addLog(message, messageType)
@@ -100,17 +101,28 @@ local function CreateTrackUi()
         elseif messageType == Enum.MessageType.MessageError then color = Color3.new(1, 0, 0) end
 
         local logLbl = Instance.new("TextLabel", consoleFrame)
-        logLbl.Size = UDim2.new(1, -10, 0, 16)
+        logLbl.Size = UDim2.new(1, -5, 0, 0)
+        logLbl.AutomaticSize = Enum.AutomaticSize.Y
         logLbl.BackgroundTransparency = 1
         logLbl.Text = string.format("[%s] %s", os.date("%X"), message)
         logLbl.Font = Enum.Font.Code
-        logLbl.TextSize = 10
+        logLbl.TextSize = 11
         logLbl.TextColor3 = color
         logLbl.TextXAlignment = Enum.TextXAlignment.Left
+        logLbl.TextWrapped = true
         logLbl.TextStrokeTransparency = 0.5
         
-        consoleFrame.CanvasSize = UDim2.new(0, 0, 0, consoleList.AbsoluteContentSize.Y)
-        if #consoleFrame:GetChildren() > 30 then consoleFrame:GetChildren()[1]:Destroy() end
+        local logs = consoleFrame:GetChildren()
+        local count = 0
+        for _, v in pairs(logs) do if v:IsA("TextLabel") then count = count + 1 end end
+        if count > 30 then
+            for _, v in pairs(logs) do
+                if v:IsA("TextLabel") then v:Destroy() break end
+            end
+        end
+        
+        task.wait()
+        consoleFrame.CanvasPosition = Vector2.new(0, consoleFrame.AbsoluteCanvasSize.Y)
     end
 
     LogService.MessageOut:Connect(addLog)
