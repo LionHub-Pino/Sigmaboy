@@ -72,7 +72,7 @@ local function CreateTrackUi()
     local infoUptime = createLabel("Uptime", 20, nil, infoContainer)
     local infoFPS = createLabel("FPS", 20, Color3.new(0, 1, 1), infoContainer)
 
-    title.Text = "Привет, пользователь банана!"
+    title.Text = "Do I look like him ?"
     
     local regionCode = "Unknown"
     pcall(function()
