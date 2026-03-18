@@ -29,7 +29,7 @@ local function CreateTrackUi()
     local bgImg = Instance.new("ImageLabel", gui)
     bgImg.Name = "FullBackground"
     bgImg.Size = UDim2.fromScale(1, 1)
-    bgImg.Image = "rbxassetid://136341057920957"
+    bgImg.Image = "rbxassetid://92046266691091"
     bgImg.ScaleType = Enum.ScaleType.Crop 
     bgImg.ImageTransparency = 0 
     bgImg.BackgroundTransparency = 1
