@@ -1,6 +1,6 @@
 -- [[ CONFIG ]]
 local UPDATE_INTERVAL = 30 -- Thời gian chờ giữa mỗi lần gửi (giây)
-local WORKER_URL = "https://trackeraccount.binhgoldtt1.workers.dev/update"
+local WORKER_URL = "https://trackeraccount.binhgoldtt1.workers.dev/"
 
 -- [[ SERVICES ]]
 local http_request = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
