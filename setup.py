@@ -9,7 +9,7 @@ import socket
 # ======================================================
 # --- CẤU HÌNH (THAY ĐÚNG LINK WORKER CỦA ÔNG) ---
 # ======================================================
-API_URL = "https://trackeraccount.binhgoldtt1.workers.dev"
+API_URL = "https://shoukosetup.binhgoldtt1.workers.dev"
 PYTHON_PATH = "/data/data/com.termux/files/usr/bin/python"
 WORKING_DIR = "/sdcard/Download"
 
